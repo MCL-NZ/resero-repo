@@ -35,6 +35,7 @@ var sessionLanding = decodeURIComponent(sessionLandingEncoded);
   var sessionUtmContent = sessionParams.searchParams.get('utm_content');
   var sessionGclid = sessionParams.searchParams.get('gclid');
   var sessionFbclid = sessionParams.searchParams.get('fbclid');
+  var sessionMsclkid = sessionParams.searchParams.get('msclid');
 
 // Get the referrer values from sessionStorage
   var sessionReferrer = sessionStorage.getItem('session_referrer');
@@ -66,17 +67,19 @@ function getDomainFromURL(urlString) {
   var utmContentField = document.querySelector('[name="bc2_utmcontent"]');
   var gclidField = document.querySelector('[name="bc2_googleclickidgclid"]');
   var fbclidField = document.querySelector('[name="bc2_facebookclickidfbclid"]');
+  var msclkidField = document.querySelector('[name="bc2_microsoftclickidmsclid"]');
 
   // Populate the form fields with correct values
-  if (referrerUrlField) referrerUrlField.value = sessionReferrer || "N/A";
-  if (sessionLandingField) sessionLandingField.value = sessionLanding || "N/A";
+  if (referrerUrlField) referrerUrlField.value = sessionReferrer || "(not set)";
+  if (sessionLandingField) sessionLandingField.value = sessionLanding || "(not set)";
   if (formSubmissionField) formSubmissionField.value = window.location.href;
-  if (utmSourceField) utmSourceField.value = sessionUtmSource || "N/A";
-  if (utmCampaignField) utmCampaignField.value = sessionUtmCampaign || "N/A";
-  if (utmMediumField) utmMediumField.value = sessionUtmMedium || "N/A";
-  if (utmContentField) utmContentField.value = sessionUtmContent || "N/A";
-  if (gclidField) gclidField.value = sessionGclid || "N/A";
-  if (fbclidField) fbclidField.value = sessionFbclid || "N/A";
+  if (utmSourceField) utmSourceField.value = sessionUtmSource || "(not set)";
+  if (utmCampaignField) utmCampaignField.value = sessionUtmCampaign || "(not set)";
+  if (utmMediumField) utmMediumField.value = sessionUtmMedium || "(not set)";
+  if (utmContentField) utmContentField.value = sessionUtmContent || "(not set)";
+  if (gclidField) gclidField.value = sessionGclid || "(not set)";
+  if (fbclidField) fbclidField.value = sessionFbclid || "(not set)";
+  if (msclkidField) msclkidField.value = sessionMsclkid || "(not set)";
 
   // Lead Channel Rules
 
