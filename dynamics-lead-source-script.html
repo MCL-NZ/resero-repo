@@ -27,16 +27,19 @@ var sessionLandingEncoded = sessionStorage.getItem("session_landing");
 var sessionLanding = decodeURIComponent(sessionLandingEncoded);
 
 
-  // Extracting information from the sessionLanding value
+// Extracting information from the sessionLanding value
   var sessionParams = new URL(sessionLanding);
   var sessionUtmSource = sessionParams.searchParams.get('utm_source');
   var sessionUtmMedium = sessionParams.searchParams.get('utm_medium');
   var sessionUtmCampaign = sessionParams.searchParams.get('utm_campaign');
   var sessionUtmContent = sessionParams.searchParams.get('utm_content');
+  var sessionGclid = sessionParams.searchParams.get('gclid');
+  var sessionFbclid = sessionParams.searchParams.get('fbclid');
 
-  // Get the referrer values from sessionStorage
+// Get the referrer values from sessionStorage
   var sessionReferrer = sessionStorage.getItem('session_referrer');
- // Check if referrer values are not empty and are valid URLs
+ 
+// Check if referrer values are not empty and are valid URLs
   var sessionDomain = getDomainFromURL(sessionReferrer);
 
 function getDomainFromURL(urlString) {
@@ -54,26 +57,32 @@ function getDomainFromURL(urlString) {
 }
 
 // Find the right fields
-  var referrerUrlField = findInputByLabelText("Referrer URL");
-  var sessionLandingField = findInputByLabelText("Last Landing Page");
-  var utmSourceField = findInputByLabelText("UTM Source");
-  var utmCampaignField = findInputByLabelText("UTM Campaign");
-  var utmMediumField = findInputByLabelText("UTM Medium");
-  var utmContentField = findInputByLabelText("UTM Content");
+  var referrerUrlField = document.querySelector('[name="bc2_formreferrerurl"]');
+  var sessionLandingField = document.querySelector('[name="bc2_firstlandingpageurl"]');
+  var formSubmissionField = document.querySelector('[name="bc2_formsubmissionurl"]');
+  var utmSourceField = document.querySelector('[name="bc2_utmsource"]');
+  var utmCampaignField = document.querySelector('[name="bc2_utmcampaign"]');
+  var utmMediumField = document.querySelector('[name="bc2_utmmedium"]');
+  var utmContentField = document.querySelector('[name="bc2_utmcontent"]');
+  var gclidField = document.querySelector('[name="bc2_googleclickidgclid"]');
+  var fbclidField = document.querySelector('[name="bc2_facebookclickidfbclid"]');
 
   // Populate the form fields with correct values
   if (referrerUrlField) referrerUrlField.value = sessionReferrer || "N/A";
   if (sessionLandingField) sessionLandingField.value = sessionLanding || "N/A";
+  if (formSubmissionField) formSubmissionField.value = window.location.href;
   if (utmSourceField) utmSourceField.value = sessionUtmSource || "N/A";
   if (utmCampaignField) utmCampaignField.value = sessionUtmCampaign || "N/A";
   if (utmMediumField) utmMediumField.value = sessionUtmMedium || "N/A";
   if (utmContentField) utmContentField.value = sessionUtmContent || "N/A";
+  if (gclidField) gclidField.value = sessionGclid || "N/A";
+  if (fbclidField) fbclidField.value = sessionFbclid || "N/A";
 
   // Lead Channel Rules
 
-// Default rule numbers
-var defaultRuleNumber = 916780011;
-var sessionRuleNumber = defaultRuleNumber;
+// Default rule text
+var defaultRuleText = "Unknown";
+var sessionRuleText = defaultRuleText;
 
 // Initialize flag variables
 var sessionRuleMatched = false;
@@ -85,14 +94,19 @@ if (!sessionRuleMatched &&
         (sessionUtmMedium === "social" && socialMediaSites.some(function(site) { return sessionDomain.includes(site); }))
     )
 ) {
-    sessionRuleNumber = 916780007;
-    sessionRuleMatched = true;
+    sessionRuleText = "Organic social";
+    sessionRuleMatched = true; // Add this line to mark the rule as matched
 }
 
 // Rule 2: Email marketing
-if (!sessionRuleMatched && sessionUtmMedium === "email") {
-    sessionRuleNumber = 916780001;
-    sessionRuleMatched = true;
+if (!sessionRuleMatched &&
+  (
+     (sessionUtmSource && (sessionUtmSource === "email" || sessionUtmSource === "e-mail" || sessionUtmSource === "e_mail" || sessionUtmSource === "e mail")) ||
+     (sessionUtmMedium && (sessionUtmMedium === "email" || sessionUtmMedium === "e-mail" || sessionUtmMedium === "e_mail" || sessionUtmMedium === "e mail"))
+  )
+) {
+    sessionRuleText = "Email marketing";
+    sessionRuleMatched = true; // Add this line to mark the rule as matched
 }
 
 // Rule 3: SMS marketing
@@ -103,8 +117,8 @@ if (
     sessionUtmMedium === "sms"
   )
 ) {
-  sessionRuleNumber = 916780001;
-  sessionRuleMatched = true;
+    sessionRuleText = "SMS";
+    sessionRuleMatched = true; // Add this line to mark the rule as matched
 }
 
 // Rule 4: Paid social
@@ -112,7 +126,7 @@ if (!sessionRuleMatched &&
     ((sessionUtmMedium && (sessionUtmMedium === "paid" || sessionUtmMedium === "ppc" || sessionUtmMedium === "cpc")) &&
     (sessionUtmSource && (recognizedSocialNetworks.includes(sessionUtmSource) || socialMediaSites.includes(sessionDomain))))
 ) {
-    sessionRuleNumber = 916780002;
+    sessionRuleText = "Paid social";
     sessionRuleMatched = true;
 }
 
@@ -128,20 +142,20 @@ if (!sessionRuleMatched &&
           searchEngines.includes(sessionDomain))
     )
 ) {
-    sessionRuleNumber = 916780003;
+    sessionRuleText = "Paid search";
     sessionRuleMatched = true;  // Add this line to mark the rule as matched
 }
 
   // Rule 6: Display
   if (!sessionRuleMatched && sessionUtmMedium === "display") {
-    sessionRuleNumber = 916780004;
-sessionRuleMatched = true;
+    sessionRuleText = "Display";
+    sessionRuleMatched = true; // Add this line to mark the rule as matched
   }
 
   // Rule 7: Affiliates
   if (!sessionRuleMatched && sessionUtmMedium && (sessionUtmMedium.includes('affiliate') || sessionUtmMedium.includes('affiliates'))) {
-    sessionRuleNumber = 916780005;
-sessionRuleMatched = true;
+    sessionRuleText = "Affiliates";
+    sessionRuleMatched = true; // Add this line to mark the rule as matched
   }
 
   // Rule 8: Other campaigns
@@ -152,32 +166,32 @@ sessionRuleMatched = true;
     });
   });
   if (!sessionRuleMatched && sessionContainsExcludedWords) {
-    sessionRuleNumber = 916780006;
-sessionRuleMatched = true;
+    sessionRuleText = "Other campaigns";
+    sessionRuleMatched = true; // Add this line to mark the rule as matched
   }
 
   // Rule 9: Organic search
 if (!sessionRuleMatched && searchEngines.some(function(engine) {
     return sessionDomain.includes(engine);
 })) {
-    sessionRuleNumber = 916780008;
-    sessionRuleMatched = true;
+    sessionRuleText = "Organic search";
+    sessionRuleMatched = true; // Add this line to mark the rule as matched
 }
 
 // Rule 10: Referral
 if (!sessionRuleMatched && !socialMediaSites.includes(sessionDomain) && !searchEngines.includes(sessionDomain) && sessionDomain !== 'N/A') {
-  sessionRuleNumber = 916780009;
-sessionRuleMatched = true;
+    sessionRuleText = "Referral";
+    sessionRuleMatched = true; // Add this line to mark the rule as matched
 }
 // Rule 11: Direct
 if (!sessionRuleMatched && sessionDomain === 'N/A') {
-    sessionRuleNumber = 916780010;
-
+    sessionRuleText = "Direct";
+    sessionRuleMatched = true; // Add this line to mark the rule as matched
 }
 
-// Return an object containing session rule numbers
+// Return an object containing session rule text
 return {
-    sessionChannel: sessionRuleNumber,
+    sessionChannel: sessionRuleText,
 };
 
 }
@@ -187,7 +201,7 @@ document.addEventListener("d365mkt-afterformload", function () {
   var rulesResult = processRulesAndPopulateFields(sessionStorage.getItem('session_landing'));
   console.log("d365mkt-afterformload", "Session Channel:", rulesResult.sessionChannel);
   // Populate Session Lead Channel
-  var sessionLeadChannelField = findInputByLabelText("Lead Channel");
+  var sessionLeadChannelField = document.querySelector('[name="bc2_leadchannel"]');
   if (sessionLeadChannelField) {
     sessionLeadChannelField.value = rulesResult.sessionChannel;
   }
